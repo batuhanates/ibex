@@ -49,20 +49,20 @@
 // Note that immediate assertions are sensitive to simulation glitches.
 `define ASSERT_I(__name, __prop)                                       \
 `ifndef VERILATOR                                                      \
-  //pragma translate_off                                               \
+ `ifndef SYNTHESIS                                                     \
   __name: assert (__prop)                                              \
     else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop)) \
-  //pragma translate_on                                                \
+ `endif                                                                \
 `endif
 
 // Assertion in initial block. Can be used for things like parameter checking.
 `define ASSERT_INIT(__name, __prop)                                      \
 `ifndef VERILATOR                                                        \
-  //pragma translate_off                                                 \
+ `ifndef SYNTHESIS                                                       \
   initial                                                                \
     __name: assert (__prop)                                              \
       else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop)) \
-  //pragma translate_on                                                  \
+ `endif                                                                  \
 `endif
 
 // Assertion in final block. Can be used for things like queues being empty
@@ -70,21 +70,21 @@
 // at end of sim.
 `define ASSERT_FINAL(__name, __prop)                                         \
 `ifndef VERILATOR                                                            \
-  //pragma translate_off                                                     \
+ `ifndef SYNTHESIS                                                           \
   final                                                                      \
     __name: assert (__prop || $test$plusargs("disable_assert_final_checks")) \
       else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop))     \
-  //pragma translate_on                                                      \
+ `endif                                                                      \
 `endif
 
 // Assert a concurrent property directly.
 // It can be called as a module (or interface) body item.
 `define ASSERT(__name, __prop, __clk, __rst)                                     \
 `ifndef VERILATOR                                                                \
-  //pragma translate_off                                                         \
+ `ifndef SYNTHESIS                                                               \
   __name: assert property (@(posedge __clk) disable iff (__rst !== '0) (__prop)) \
     else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop))           \
-  //pragma translate_on                                                          \
+ `endif                                                                          \
 `endif
 // Note: Above we use (__rst !== '0) in the disable iff statements instead of
 // (__rst == '1).  This properly disables the assertion in cases when reset is X at
@@ -94,27 +94,27 @@
 // Assert a concurrent property NEVER happens
 `define ASSERT_NEVER(__name, __prop, __clk, __rst)                                   \
 `ifndef VERILATOR                                                                    \
-  //pragma translate_off                                                             \
+ `ifndef SYNTHESIS                                                                   \
   __name: assert property (@(posedge __clk) disable iff (__rst !== '0) not (__prop)) \
     else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop))               \
-  //pragma translate_on                                                              \
+ `endif                                                                              \
 `endif
 
 // Assert that signal has a known value (each bit is either '0' or '1') after reset.
 // It can be called as a module (or interface) body item.
 `define ASSERT_KNOWN(__name, __sig, __clk, __rst)   \
 `ifndef VERILATOR                                   \
-  //pragma translate_off                            \
+ `ifndef SYNTHESIS                                  \
   `ASSERT(__name, !$isunknown(__sig), __clk, __rst) \
-  //pragma translate_on                             \
+ `endif                                             \
 `endif
 
 //  Cover a concurrent property
 `define COVER(__name, __prop, __clk, __rst)                                      \
 `ifndef VERILATOR                                                                \
-  //pragma translate_off                                                         \
+ `ifndef SYNTHESIS                                                               \
   __name: cover property (@(posedge __clk) disable iff (__rst !== '0) (__prop)); \
-  //pragma translate_on                                                          \
+ `endif                                                                          \
 `endif
 
 //////////////////////////////
@@ -124,28 +124,28 @@
 // Assert that signal is an active-high pulse with pulse length of 1 clock cycle
 `define ASSERT_PULSE(__name, __sig, __clk, __rst)          \
 `ifndef VERILATOR                                          \
-  //pragma translate_off                                   \
+ `ifndef SYNTHESIS                                         \
   `ASSERT(__name, $rose(__sig) |=> !(__sig), __clk, __rst) \
-  //pragma translate_on                                    \
+ `endif                                                    \
 `endif
 
 // Assert that valid is known after reset and data is known when valid == 1
 `define ASSERT_VALID_DATA(__name, __valid, __dat, __clk, __rst)                  \
 `ifndef VERILATOR                                                                \
-  //pragma translate_off                                                         \
+ `ifndef SYNTHESIS                                                               \
   `ASSERT_KNOWN(__name``KnownValid, __valid, __clk, __rst)                       \
   `ASSERT_NEVER(__name``KnownData, (__valid) && $isunknown(__dat), __clk, __rst) \
-  //pragma translate_on                                                          \
+ `endif                                                                          \
 `endif
 
 // Same as ASSERT_VALID_DATA, but also assert that ready is known after reset
 `define ASSERT_VALID_READY_DATA(__name, __valid, __ready, __dat, __clk, __rst)   \
 `ifndef VERILATOR                                                                \
-  //pragma translate_off                                                         \
+ `ifndef SYNTHESIS                                                               \
   `ASSERT_KNOWN(__name``KnownValid, __valid, __clk, __rst)                       \
   `ASSERT_KNOWN(__name``KnownReady, __ready, __clk, __rst)                       \
   `ASSERT_NEVER(__name``KnownData, (__valid) && $isunknown(__dat), __clk, __rst) \
-  //pragma translate_on                                                          \
+ `endif                                                                          \
 `endif
 
 ///////////////////////
@@ -155,17 +155,19 @@
 // Assume a concurrent property
 `define ASSUME(__name, __prop, __clk, __rst)                                      \
 `ifndef VERILATOR                                                                 \
+ `ifndef SYNTHESIS                                                                \
   __name: assume property (@(posedge __clk) disable iff (__rst !== '0) (__prop))  \
      else begin `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop)) end \
+ `endif                                                                           \
 `endif
 
 // Assume an immediate property
 `define ASSUME_I(__name, __prop)                                       \
 `ifndef VERILATOR                                                      \
-  //pragma translate_off                                               \
+ `ifndef SYNTHESIS                                                     \
   __name: assume (__prop)                                              \
     else `ASSERT_RPT(`PRIM_STRINGIFY(__name), `PRIM_STRINGIFY(__prop)) \
-  //pragma translate_on                                                \
+ `endif                                                                \
 `endif
 
 //////////////////////////////////

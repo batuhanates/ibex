@@ -656,6 +656,7 @@ module ibex_core #(
       .lsu_busy_i              ( lsu_busy               )
   );
 
+generate
   if (PMPEnable) begin : g_pmp
     logic [33:0] pmp_req_addr [PMP_NUM_CHAN];
     pmp_req_e    pmp_req_type [PMP_NUM_CHAN];
@@ -698,6 +699,7 @@ module ibex_core #(
     assign pmp_req_err[PMP_I] = 1'b0;
     assign pmp_req_err[PMP_D] = 1'b0;
   end
+endgenerate
 
 `ifdef RVFI
   always_ff @(posedge clk or negedge rst_ni) begin
