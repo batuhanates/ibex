@@ -1016,7 +1016,7 @@ module ibex_cs_registers #(
   ////////////////
   // Assertions //
   ////////////////
-
+/*
   // Selectors must be known/valid.
   `ASSERT(IbexCsrOpValid, csr_op_i inside {
       CSR_OP_READ,
@@ -1025,5 +1025,5 @@ module ibex_cs_registers #(
       CSR_OP_CLEAR
       }, clk_i, !rst_ni)
   `ASSERT_KNOWN(IbexCsrWdataIntKnown, csr_wdata_int, clk_i, !rst_ni)
-
+*/
 endmodule

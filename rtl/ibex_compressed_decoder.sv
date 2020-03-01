@@ -272,7 +272,7 @@ module ibex_compressed_decoder (
   ////////////////
   // Assertions //
   ////////////////
-
+/*
   // Selectors must be known/valid.
   `ASSERT_KNOWN(IbexInstrLSBsKnown, instr_i[1:0], clk_i, !rst_ni)
   `ASSERT(IbexC0Known1, (instr_i[1:0] == 2'b00) |-> !$isunknown(instr_i[15:13]), clk_i, !rst_ni)
@@ -284,5 +284,5 @@ module ibex_compressed_decoder (
       ((instr_i[1:0] == 2'b01) && (instr_i[15:13] == 3'b100) && (instr_i[11:10] == 2'b11)) |->
       !$isunknown({instr_i[12], instr_i[6:5]}), clk_i, !rst_ni)
   `ASSERT(IbexC2Known1, (instr_i[1:0] == 2'b10) |-> !$isunknown(instr_i[15:13]), clk_i, !rst_ni)
-
+*/
 endmodule

@@ -481,7 +481,7 @@ module ibex_load_store_unit (
   ////////////////
   // Assertions //
   ////////////////
-
+/*
   // Selectors must be known/valid.
   `ASSERT_KNOWN(IbexDataTypeKnown, data_type_ex_i, clk_i, !rst_ni)
   `ASSERT_KNOWN(IbexDataOffsetKnown, data_offset, clk_i, !rst_ni)
@@ -507,5 +507,5 @@ module ibex_load_store_unit (
 
   // Address must be word aligned when request is sent.
   `ASSERT(IbexDataAddrUnaligned, data_req_o |-> (data_addr_o[1:0] == 2'b00), clk_i, !rst_ni)
-
+*/
 endmodule

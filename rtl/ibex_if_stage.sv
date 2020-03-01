@@ -257,7 +257,7 @@ module ibex_if_stage #(
   ////////////////
   // Assertions //
   ////////////////
-
+/*
   // Selectors must be known/valid.
   `ASSERT_KNOWN(IbexExcPcMuxKnown, exc_pc_mux_i, clk_i, !rst_ni)
   `ASSERT(IbexPcMuxValid, pc_mux_i inside {
@@ -279,5 +279,5 @@ module ibex_if_stage #(
 
   // Address must be word aligned when request is sent.
   `ASSERT(IbexInstrAddrUnaligned, instr_req_o |-> (instr_addr_o[1:0] == 2'b00), clk_i, !rst_ni)
-
+*/
 endmodule
