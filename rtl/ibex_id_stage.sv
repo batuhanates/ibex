@@ -613,7 +613,7 @@ module ibex_id_stage #(
   ////////////////
   // Assertions //
   ////////////////
-
+/*
   // Selectors must be known/valid.
   `ASSERT_KNOWN(IbexAluOpMuxSelKnown, alu_op_a_mux_sel, clk_i, !rst_ni)
   `ASSERT(IbexImmBMuxSelValid, imm_b_mux_sel inside {
@@ -647,5 +647,5 @@ module ibex_id_stage #(
   `ifdef CHECK_MISALIGNED
   `ASSERT(IbexMisalignedMemoryAccess, !lsu_addr_incr_req_i, clk_i, !rst_ni)
   `endif
-
+*/
 endmodule
