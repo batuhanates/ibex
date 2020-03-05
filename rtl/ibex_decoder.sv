@@ -426,6 +426,13 @@ module ibex_decoder #(
             {6'b00_0000, 3'b001}: alu_operator_o = ALU_SLL;   // Shift Left Logical
             {6'b00_0000, 3'b101}: alu_operator_o = ALU_SRL;   // Shift Right Logical
             {6'b10_0000, 3'b101}: alu_operator_o = ALU_SRA;   // Shift Right Arithmetic
+            
+            // Custom instructions
+            {6'b1100_00, 3'b000}: alu_operator_o = ALU_CUST0; // Custom 0: Hamming weight diff
+            {6'b1100_01, 3'b000}: alu_operator_o = ALU_CUST1; // Custom 1
+            {6'b1100_10, 3'b000}: alu_operator_o = ALU_CUST2; // Custom 2
+            {6'b1100_11, 3'b000}: alu_operator_o = ALU_CUST3; // Custom 3
+            {6'b1101_00, 3'b000}: alu_operator_o = ALU_CUST4; // Custom 4
 
             // supported RV32M instructions
             {6'b00_0001, 3'b000}: begin // mul

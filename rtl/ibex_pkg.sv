@@ -32,7 +32,7 @@ typedef enum logic [6:0] {
 // ALU operations //
 ////////////////////
 
-typedef enum logic [4:0] {
+typedef enum logic [5:0] {
   // Arithmetics
   ALU_ADD,
   ALU_SUB,
@@ -57,7 +57,14 @@ typedef enum logic [4:0] {
 
   // Set lower than
   ALU_SLT,
-  ALU_SLTU
+  ALU_SLTU,
+  
+  // Custom Instructions
+  ALU_CUST0,
+  ALU_CUST1,
+  ALU_CUST2,
+  ALU_CUST3,
+  ALU_CUST4
 } alu_op_e;
 
 typedef enum logic [1:0] {
