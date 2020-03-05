@@ -177,7 +177,34 @@ module ibex_alu (
   end
 
   assign comparison_result_o = cmp_result;
+  
+  //////////////
+  // Custom 0 //
+  //////////////
+  
+  logic [31:0] cust0_result;
+  logic [32:0] cust0_result_ext;
+  logic [5:0] cust0_count_a;
+  logic [5:0] cust0_count_b;
+  logic [32:0] cust0_count_a_ext;
+  logic [32:0] cust0_count_b_ext;
 
+  always@(operand_a_i, operand_b_i)
+  begin
+    cust0_count_a = 5'b0;
+    for(integer i = 0; i < 32; i = i + 1)
+      cust0_count_a = cust0_count_a + operand_a_i[i];
+      
+    cust0_count_b = 5'b0;
+    for(integer i = 0; i < 32; i = i + 1)
+      cust0_count_b = cust0_count_b + operand_b_i[i];
+  end
+  
+  assign cust0_count_a_ext[32:0] = {28'b0, cust0_count_a, 1'b1};
+  assign cust0_count_b_ext[32:0] = ~{28'b0, cust0_count_b, 1'b0};
+  assign cust0_result_ext = $unsigned(cust0_count_a_ext) + $unsigned(cust0_count_b_ext);
+  assign cust0_result = cust0_result_ext[32:1];
+  
   ////////////////
   // Result mux //
   ////////////////
@@ -203,7 +230,10 @@ module ibex_alu (
       ALU_GE,   ALU_GEU,
       ALU_LT,   ALU_LTU,
       ALU_SLT,  ALU_SLTU: result_o = {31'h0,cmp_result};
-
+      
+      // Custom Operations
+      ALU_CUST0: result_o = cust0_result;
+      
       default:;
     endcase
   end
