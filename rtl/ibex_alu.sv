@@ -189,16 +189,50 @@ module ibex_alu (
   logic [32:0] cust0_count_a_ext;
   logic [32:0] cust0_count_b_ext;
 
-  always@(operand_a_i, operand_b_i)
-  begin
-    cust0_count_a = 5'b0;
-    for(integer i = 0; i < 32; i = i + 1)
-      cust0_count_a = cust0_count_a + operand_a_i[i];
+//  always@(operand_a_i, operand_b_i)
+//  begin
+//    cust0_count_a = 5'b0;
+//    for(integer i = 0; i < 32; i = i + 1)
+//      cust0_count_a = cust0_count_a + operand_a_i[i];
       
-    cust0_count_b = 5'b0;
-    for(integer i = 0; i < 32; i = i + 1)
-      cust0_count_b = cust0_count_b + operand_b_i[i];
-  end
+//    cust0_count_b = 5'b0;
+//    for(integer i = 0; i < 32; i = i + 1)
+//      cust0_count_b = cust0_count_b + operand_b_i[i];
+//  end
+  
+  logic [7:0][3:0] cust0_lut_counts_a;
+  logic [7:0][3:0] cust0_lut_counts_b;
+  logic [3:0][4:0] cust0_lut_add1_a;
+  logic [3:0][4:0] cust0_lut_add1_b;
+  logic [1:0][5:0] cust0_lut_add2_a;
+  logic [1:0][5:0] cust0_lut_add2_b;
+  
+  generate
+    for (genvar i = 0; i < 8; i = i + 1) begin : hw_luts
+      hw_lut (
+        .data (operand_a_i[4*i+3:4*i]),
+        .count (cust0_lut_counts_a[i])
+      );
+      
+      hw_lut (
+        .data (operand_b_i[4*i+3:4*i]),
+        .count (cust0_lut_counts_b[i])
+      );
+    end
+    
+    for (genvar i = 0; i < 8; i = i + 2) begin : hw_luts_add1
+      assign cust0_lut_add1_a[i/2] = {1'b0, cust0_lut_counts_a[i]} + {1'b0, cust0_lut_counts_a[i+1]};
+      assign cust0_lut_add1_b[i/2] = {1'b0, cust0_lut_counts_b[i]} + {1'b0, cust0_lut_counts_b[i+1]};
+    end
+    
+    for (genvar i = 0; i < 4; i = i + 2) begin : hw_luts_add2
+      assign cust0_lut_add2_a[i/2] = {1'b0, cust0_lut_add1_a[i]} + {1'b0, cust0_lut_add1_a[i+1]};
+      assign cust0_lut_add2_b[i/2] = {1'b0, cust0_lut_add1_b[i]} + {1'b0, cust0_lut_add1_b[i+1]};
+    end
+  endgenerate
+  
+  assign cust0_count_a = {25'b0, {1'b0, cust0_lut_add2_a[0]} + {1'b0, cust0_lut_add2_a[1]}};
+  assign cust0_count_b = {25'b0, {1'b0, cust0_lut_add2_b[0]} + {1'b0, cust0_lut_add2_b[1]}};
   
   assign cust0_count_a_ext[32:0] = {28'b0, cust0_count_a, 1'b1};
   assign cust0_count_b_ext[32:0] = ~{28'b0, cust0_count_b, 1'b0};
