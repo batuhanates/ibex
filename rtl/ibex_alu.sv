@@ -48,6 +48,9 @@ module ibex_alu (
       // Adder OPs
       ALU_SUB,
 
+      // Custom OPs
+      ALU_CUST1, ALU_CUST2,
+
       // Comparator OPs
       ALU_EQ,   ALU_NE,
       ALU_GE,   ALU_GEU,
@@ -177,11 +180,11 @@ module ibex_alu (
   end
 
   assign comparison_result_o = cmp_result;
-  
+
   //////////////
   // Custom 0 //
   //////////////
-  
+
   logic [31:0] cust0_result;
   logic [32:0] cust0_result_ext;
   logic [5:0] cust0_count_a;
@@ -189,56 +192,69 @@ module ibex_alu (
   logic [32:0] cust0_count_a_ext;
   logic [32:0] cust0_count_b_ext;
 
-//  always@(operand_a_i, operand_b_i)
-//  begin
-//    cust0_count_a = 5'b0;
-//    for(integer i = 0; i < 32; i = i + 1)
-//      cust0_count_a = cust0_count_a + operand_a_i[i];
-      
-//    cust0_count_b = 5'b0;
-//    for(integer i = 0; i < 32; i = i + 1)
-//      cust0_count_b = cust0_count_b + operand_b_i[i];
-//  end
-  
-  logic [7:0][3:0] cust0_lut_counts_a;
-  logic [7:0][3:0] cust0_lut_counts_b;
-  logic [3:0][4:0] cust0_lut_add1_a;
-  logic [3:0][4:0] cust0_lut_add1_b;
-  logic [1:0][5:0] cust0_lut_add2_a;
-  logic [1:0][5:0] cust0_lut_add2_b;
-  
+  logic [7:0][2:0] cust0_lut_counts_a;
+  logic [7:0][2:0] cust0_lut_counts_b;
+  logic [3:0][3:0] cust0_lut_add1_a;
+  logic [3:0][3:0] cust0_lut_add1_b;
+  logic [1:0][4:0] cust0_lut_add2_a;
+  logic [1:0][4:0] cust0_lut_add2_b;
+
   generate
     for (genvar i = 0; i < 8; i = i + 1) begin : hw_luts
       hw_lut (
         .data (operand_a_i[4*i+3:4*i]),
         .count (cust0_lut_counts_a[i])
       );
-      
+
       hw_lut (
         .data (operand_b_i[4*i+3:4*i]),
         .count (cust0_lut_counts_b[i])
       );
     end
-    
+
     for (genvar i = 0; i < 8; i = i + 2) begin : hw_luts_add1
       assign cust0_lut_add1_a[i/2] = {1'b0, cust0_lut_counts_a[i]} + {1'b0, cust0_lut_counts_a[i+1]};
       assign cust0_lut_add1_b[i/2] = {1'b0, cust0_lut_counts_b[i]} + {1'b0, cust0_lut_counts_b[i+1]};
     end
-    
+
     for (genvar i = 0; i < 4; i = i + 2) begin : hw_luts_add2
       assign cust0_lut_add2_a[i/2] = {1'b0, cust0_lut_add1_a[i]} + {1'b0, cust0_lut_add1_a[i+1]};
       assign cust0_lut_add2_b[i/2] = {1'b0, cust0_lut_add1_b[i]} + {1'b0, cust0_lut_add1_b[i+1]};
     end
   endgenerate
-  
-  assign cust0_count_a = {25'b0, {1'b0, cust0_lut_add2_a[0]} + {1'b0, cust0_lut_add2_a[1]}};
-  assign cust0_count_b = {25'b0, {1'b0, cust0_lut_add2_b[0]} + {1'b0, cust0_lut_add2_b[1]}};
-  
-  assign cust0_count_a_ext[32:0] = {28'b0, cust0_count_a, 1'b1};
-  assign cust0_count_b_ext[32:0] = ~{28'b0, cust0_count_b, 1'b0};
+
+  assign cust0_count_a = {1'b0, cust0_lut_add2_a[0]} + {1'b0, cust0_lut_add2_a[1]};
+  assign cust0_count_b = {1'b0, cust0_lut_add2_b[0]} + {1'b0, cust0_lut_add2_b[1]};
+
+  assign cust0_count_a_ext[32:0] = {26'b0, cust0_count_a, 1'b1};
+  assign cust0_count_b_ext[32:0] = ~{26'b0, cust0_count_b, 1'b0};
   assign cust0_result_ext = $unsigned(cust0_count_a_ext) + $unsigned(cust0_count_b_ext);
   assign cust0_result = cust0_result_ext[32:1];
-  
+
+  //////////////
+  // Custom 1 //
+  //////////////
+
+  logic [31:0] cust1_m;
+  logic [31:0] cust1_c;
+  logic [31:0] cust1_result;
+
+  assign cust1_m = adder_result;
+  assign cust1_c = {32{cust1_m[31]}};
+  assign cust1_result = cust1_m ^ ((operand_a_i ^ cust1_m) & cust1_c);
+
+  //////////////
+  // Custom 2 //
+  //////////////
+
+  logic [31:0] cust2_result;
+  logic [31:0] cust2_r;
+  logic [31:0] cust2_m;
+
+  assign cust2_r = adder_result;
+  assign cust2_m = {32{cust2_r[31]}};
+  assign cust2_result = (cust2_r + cust2_m) ^ cust2_m;
+
   ////////////////
   // Result mux //
   ////////////////
@@ -264,10 +280,12 @@ module ibex_alu (
       ALU_GE,   ALU_GEU,
       ALU_LT,   ALU_LTU,
       ALU_SLT,  ALU_SLTU: result_o = {31'h0,cmp_result};
-      
+
       // Custom Operations
       ALU_CUST0: result_o = cust0_result;
-      
+      ALU_CUST1: result_o = cust1_result;
+      ALU_CUST2: result_o = cust2_result;
+
       default:;
     endcase
   end
